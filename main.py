@@ -17,10 +17,27 @@ def gethigh():
     with open("scores.txt", "r") as file:
         for line in file:
             if (line != ""):
-                s = max(float(line), s)
+                s = max(float(line.split(", ")[0]), s)
     return math.floor(s)
 
+def hsort(a):
+    return float(a[0])
+
+def gethighlist():
+    scoredict = []
+    with open("scores.txt", "r") as file:
+        for line in file:
+            if (line == ""): return
+            s = line.split(", ")
+            s[1] = s[1].split("\n")[0]
+            scoredict.append(s)
+    
+    scoredict.sort(key=hsort, reverse=True)
+    return scoredict
+
+
 high = gethigh()
+highlist = gethighlist()
 
 def grid(p,s): return round(p/s)*s
 
@@ -43,15 +60,16 @@ class Game():
         print(grid(W_W/2 - 40,40),grid(340,40))
         for i in range(0,W_H+80,40):
             self.tiles.add(Tile(self,round(random.randint(0,W_W)/40)*40,"grass",i))
-        self.font = pygame.font.Font(None, 74)
-        
+        self.font = pygame.font.Font("./COMIC.TTF", 45)
+        self.gameover = False
+        self.name = ""
         
         
         #self.tile = Tile()
 
 
     def update(self):
-        global score, high
+        global score, high, highlist
         t = self.tiles.sprites()
         if (round(-score / t[len(t)-1].rect.height)*t[len(t)-1].rect.height < t[len(t)-1].baseheight):
             self.tiles.add(Tile(self,round(random.randint(0,W_W)/t[len(t)-1].rect.height)*t[len(t)-1].rect.height,"grass",round(-score / t[len(t)-1].rect.height)*t[len(t)-1].rect.height))
@@ -60,7 +78,29 @@ class Game():
         self.spawntimer.update()
         self.spawntimer.duration = 1500 / max(((time.time() - startTime) / 20), 1)
         score = max(-self.camy, score)
-        if (self.player.hit):
+        if (self.player.rect.bottom > (W_H*1.25)):
+            if (not self.gameover):
+
+                self.gameover = True
+                self.player_sprite.remove(self.player)
+                
+                
+                high = max(gethigh(),score)
+                f = open("scores.txt", "a")
+                f.write(str(score) + ", " + "test")
+                f.write("\n")
+                f.close()
+                highlist = gethighlist()
+            mx, my = pygame.mouse.get_pos()
+            events = pygame.event.get()
+                    
+                    
+            if ((mx > (W_W/2 - 100)) and (mx < (W_W/2 + 100)) and (my > (W_H/2 - 36.5)) and (my < (W_H/2 + 36.5)) and pygame.mouse.get_pressed()[0]):
+                
+                score = 0
+                self.__init__()
+                print(highlist)
+        '''if (self.player.hit):
             self.spawntimer.stopTimer()
             self.player_sprite.remove(self.player)
             mx, my = pygame.mouse.get_pos()
@@ -72,18 +112,22 @@ class Game():
                 score = 0
                 high = gethigh()
                 self.__init__()
+        '''
 
     
     def draw(self, screen):
-        global score
+        global score, highlist
         self.player_sprite.draw(screen)
         self.tiles.draw(screen)
-        if (self.player.hit):
+        if (self.player.rect.bottom > (W_H*1.25)):
             text = self.font.render("Game Over", True, (128, 128, 128))
             text_rect = text.get_rect(center = (W_W / 2, W_H / 4))
             screen.blit(text, text_rect)
             text = self.font.render(f"Score: {(score):.2f}", True, (128, 128, 128))
             text_rect = text.get_rect(center = (W_W / 2, W_H / 3))
+            screen.blit(text, text_rect)
+            text = self.font.render(f"High score: {(high):.2f}", True, (128, 128, 128))
+            text_rect = text.get_rect(center = (W_W / 2, W_H / 7))
             screen.blit(text, text_rect)
 
             w = 200
@@ -91,9 +135,23 @@ class Game():
             text_rect = pygame.rect.Rect(0, 0, w, h)
             text_rect.center = (W_W/2, W_H/2)
             pygame.draw.rect(screen, (100, 100, 100), text_rect)
+            text_rect.center = (W_W/2, W_H/2 + 150)
+            pygame.draw.rect(screen, (100, 100, 100), text_rect)
             text = self.font.render("Restart", True, (188, 188, 188))
             text_rect = text.get_rect(center = (W_W / 2, W_H / 2))
             screen.blit(text, text_rect)
+
+            text = self.font.render(self.name, True, (188, 188, 188))
+            text_rect = text.get_rect(center = (W_W / 2, W_H / 2 + 150))
+            screen.blit(text, text_rect)
+
+            text = ""
+            it = 0
+            for i in highlist:
+                text = self.font.render(f"{i[1]} - {i[0]}", True, (128, 128, 128))
+                text_rect = text.get_rect(left=0, top=((W_H/2) + (50*it)))
+                screen.blit(text, text_rect)
+                it += 1
         else:
             text = self.font.render(f"Score: {(score):.2f}", True, (128, 128, 128))
             text_rect = text.get_rect(midleft = (W_W * (1/32), W_H * (1/16)))
@@ -102,9 +160,9 @@ class Game():
             text_rect = text.get_rect(midleft = (W_W * (1/32), W_H * (1/4)))
             screen.blit(text, text_rect)
 
-        text = self.font.render(str(self.camy) + ", " + str(self.player.y), True, (188, 188, 188))
+        '''text = self.font.render(str(self.camy) + ", " + str(self.player.y), True, (188, 188, 188))
         text_rect = text.get_rect(center = (W_W / 2, W_H*0.8))
-        screen.blit(text, text_rect)
+        screen.blit(text, text_rect)'''
 
 
 game = Game()
@@ -129,6 +187,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             sys.exit()
+        if event.type == pygame.KEYDOWN:
+            print(event.key)
+            game.name += chr(event.key)
 
     screen.fill(game.BG_COLOR)
     screen.blit(bg_surf,(0,0))
