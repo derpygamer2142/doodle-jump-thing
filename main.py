@@ -86,17 +86,17 @@ class Game():
                 
                 
                 high = max(gethigh(),score)
-                f = open("scores.txt", "a")
-                f.write(str(score) + ", " + "test")
-                f.write("\n")
-                f.close()
-                highlist = gethighlist()
+                
             mx, my = pygame.mouse.get_pos()
             events = pygame.event.get()
                     
                     
             if ((mx > (W_W/2 - 100)) and (mx < (W_W/2 + 100)) and (my > (W_H/2 - 36.5)) and (my < (W_H/2 + 36.5)) and pygame.mouse.get_pressed()[0]):
-                
+                f = open("scores.txt", "a")
+                f.write(str(score) + ", " + self.name)
+                f.write("\n")
+                f.close()
+                highlist = gethighlist()
                 score = 0
                 self.__init__()
                 print(highlist)
@@ -187,9 +187,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             sys.exit()
-        if event.type == pygame.KEYDOWN:
-            print(event.key)
-            game.name += chr(event.key)
+        if event.type == pygame.KEYDOWN and game.player.rect.bottom > (W_H*1.25):
+            if (event.key == 8):
+                game.name = game.name[:-1]
+            else:
+                game.name += chr(event.key)
 
     screen.fill(game.BG_COLOR)
     screen.blit(bg_surf,(0,0))
